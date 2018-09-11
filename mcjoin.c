@@ -34,7 +34,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#define BUFSZ           100
+#define BUFSZ           512
 #define MAX_NUM_GROUPS  250
 #define DEFAULT_IFNAME  "eth0"
 #define DEFAULT_GROUP   "225.1.2.3"
