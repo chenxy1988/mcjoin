@@ -37,7 +37,10 @@
 #define BUFSZ           512
 #define MAX_NUM_GROUPS  250
 #define DEFAULT_IFNAME  "eth0"
-#define DEFAULT_GROUP   "225.1.2.3"
+#define DEFAULT_GROUP   "225.100.100.41"
+#define DEFAULT_GROUP_2   "225.100.100.42"
+#define DEFAULT_GROUP_3   "225.100.100.43"
+#define DEFAULT_GROUP_4   "225.100.100.44"
 #define DEFAULT_PORT    1234
 #define MAGIC_KEY       "Sender PID "
 
@@ -90,6 +93,7 @@ size_t count = 0;
 int port = DEFAULT_PORT;
 unsigned char ttl = 1;
 char *ident = PACKAGE_NAME;
+static char group_addr[32];
 
 size_t group_num = 0;
 struct gr groups[MAX_NUM_GROUPS];
@@ -509,13 +513,16 @@ static char *progname(char *arg0)
 
 int main(int argc, char *argv[])
 {
-	int i, c;
+	int i, c, dot;
 	size_t len;
+	char *ipaddr;
 	struct sigaction sa = {
 		.sa_flags = SA_RESTART,
 		.sa_handler = exit_loop,
 	};
 	extern int optind;
+
+	memcpy(group_addr,DEFAULT_GROUP,sizeof(DEFAULT_GROUP));
 
 	/* Default interface
 	 * XXX - Should be the first, after lo, in the list at /proc/net/dev, or
@@ -526,7 +533,7 @@ int main(int argc, char *argv[])
 		memset(&groups[i], 0, sizeof(groups[0]));
 
 	ident = progname(argv[0]);
-	while ((c = getopt(argc, argv, "c:di:jp:qr:st:vh")) != EOF) {
+	while ((c = getopt(argc, argv, "c:di:jpg:qr:st:vh")) != EOF) {
 		switch (c) {
 		case 'c':
 			count = (size_t)atoi(optarg);
@@ -536,6 +543,24 @@ int main(int argc, char *argv[])
 			debug = 1;
 			break;
 
+		case 'g':
+			len = strlen(optarg);
+			memset(group_addr,0x0,sizeof(group_addr));
+			ipaddr = optarg;
+			if((len > 15) || len < 7){
+				printf("group length=%d, ipaddress=%s \n",(int)len,optarg);
+				ipaddr = DEFAULT_GROUP;
+			}
+			dot = 0;
+			for(i=0;i<(int)len;i++){
+				if(optarg[i] == '.')
+					dot++;
+			}
+			if(dot != 3){
+				ipaddr = DEFAULT_GROUP;
+			}
+			strncpy(group_addr,ipaddr,strlen(ipaddr));
+			break;
 		case 'h':
 			return usage(0);
 
@@ -590,7 +615,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (optind == argc)
-		groups[group_num++].group = strdup(DEFAULT_GROUP);
+		groups[group_num++].group = strdup(group_addr);
 
 	/*
 	 * mcjoin group+num
