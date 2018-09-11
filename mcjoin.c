@@ -378,6 +378,7 @@ static int show_stats(void)
 static int loop(void)
 {
 	size_t i;
+	size_t total = count * group_num;
 	struct sigaction sa = {
 		.sa_flags = SA_RESTART,
 		.sa_handler = send_mcast,
@@ -434,7 +435,6 @@ static int loop(void)
 			}
 
 			if (count > 0) {
-				size_t total = count * group_num;
 
 				for (i = 0; i < group_num; i++) {
 					if (groups[i].count >= count)
