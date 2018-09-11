@@ -38,9 +38,6 @@
 #define MAX_NUM_GROUPS  250
 #define DEFAULT_IFNAME  "eth0"
 #define DEFAULT_GROUP   "225.100.100.41"
-#define DEFAULT_GROUP_2   "225.100.100.42"
-#define DEFAULT_GROUP_3   "225.100.100.43"
-#define DEFAULT_GROUP_4   "225.100.100.44"
 #define DEFAULT_PORT    1234
 #define MAGIC_KEY       "Sender PID "
 
@@ -482,6 +479,7 @@ static int usage(int code)
 	       "Options:\n"
 	       "  -c COUNT     Stop after sending/receiving COUNT number of packets\n"
 	       "  -d           Debug output\n"
+           "  -g           Group address\n"
 	       "  -h           This help text\n"
 	       "  -i IFACE     Interface to use for sending/receiving multicast, default: %s\n"
 	       "  -j           Join groups, default unless acting as sender\n"
