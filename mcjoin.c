@@ -539,7 +539,7 @@ int main(int argc, char *argv[])
 		memset(&groups[i], 0, sizeof(groups[0]));
 
 	ident = progname(argv[0]);
-	while ((c = getopt(argc, argv, "c:di:jpgo:qr:st:vh")) != EOF) {
+	while ((c = getopt(argc, argv, "c:di:g:jp:o:qr:st:vh")) != EOF) {
 		switch (c) {
 		case 'c':
 			count = (size_t)atoi(optarg);
