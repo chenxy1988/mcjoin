@@ -33,13 +33,15 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <fcntl.h>
 
-#define BUFSZ           512
-#define MAX_NUM_GROUPS  250
-#define DEFAULT_IFNAME  "eth0"
-#define DEFAULT_GROUP   "225.100.100.41"
-#define DEFAULT_PORT    1234
-#define MAGIC_KEY       "Sender PID "
+#define BUFSZ           	512
+#define MAX_NUM_GROUPS  	250
+#define DEFAULT_IFNAME  	"eth0"
+#define DEFAULT_GROUP   	"225.100.100.41"
+#define DEFAULT_PORT    	1234
+#define MAGIC_KEY       	"Sender PID "
+#define DEFAULT_LOG_PATH	"/tmp/mcjoin.log"
 
 /* Esc[?25l (lower case L)    - Hide Cursor */
 #define hidecursor()          fputs ("\e[?25l", stdout)
@@ -97,6 +99,7 @@ struct gr groups[MAX_NUM_GROUPS];
 
 char iface[IFNAMSIZ + 1];
 int num_joins = 0;
+static int debug_fd = -1;
 
 
 static int alloc_socket(struct in_addr group, int port)
@@ -370,6 +373,10 @@ static int show_stats(void)
 		}
 
 		PRINT("\nReceived total: %zu packets", total_count);
+		if(debug_fd > 0){
+			dprintf(debug_fd,"Received total: %zu packets\n", total_count);
+			close(debug_fd);
+		}
 	}
 
 	return 0;
@@ -484,6 +491,7 @@ static int usage(int code)
 	       "  -i IFACE     Interface to use for sending/receiving multicast, default: %s\n"
 	       "  -j           Join groups, default unless acting as sender\n"
 	       "  -p PORT      UDP port number to listen to, default: %d\n"
+           "  -o PATH      Save statistic data to a file\n"
 	       "  -q           Quiet mode\n"
 	       "  -r SEC       Do a join/leave every SEC seconds (backwards compat. option)\n"
 	       "  -s           Act as sender, sends packets to select groups, default: no\n"
@@ -531,7 +539,7 @@ int main(int argc, char *argv[])
 		memset(&groups[i], 0, sizeof(groups[0]));
 
 	ident = progname(argv[0]);
-	while ((c = getopt(argc, argv, "c:di:jpg:qr:st:vh")) != EOF) {
+	while ((c = getopt(argc, argv, "c:di:jpgo:qr:st:vh")) != EOF) {
 		switch (c) {
 		case 'c':
 			count = (size_t)atoi(optarg);
@@ -558,6 +566,14 @@ int main(int argc, char *argv[])
 				ipaddr = DEFAULT_GROUP;
 			}
 			strncpy(group_addr,ipaddr,strlen(ipaddr));
+			break;
+		case 'o':
+			unlink(optarg);
+			debug_fd = open(optarg,O_RDWR|O_CREAT,0666);
+			if(debug_fd < 0){
+				perror("Open debug output log failed, use default PATH /tmp/mcjoin.log");
+				debug_fd = open(DEFAULT_LOG_PATH,O_RDWR|O_CREAT);
+			}
 			break;
 		case 'h':
 			return usage(0);
